@@ -2,10 +2,11 @@ import Head from "next/head"
 import Image from "next/image"
 import { Inter } from "next/font/google"
 import styles from "@/styles/Home.module.css"
-import ManualHeader from "@/components/ManualHeader"
+// import ManualHeader from "@/components/ManualHeader"
 import { useMoralis } from "react-moralis"
+import Header from "@/components/Header"
 
-const inter = Inter({ subsets: ["latin"] })
+// const inter = Inter({ subsets: ["latin"] })
 
 export default function Home() {
   return (
@@ -18,7 +19,8 @@ export default function Home() {
           {/* <link rel="icon" href="/favicon.ico" /> */}
           <link rel="icon" href="/newLogo.png" />
         </Head>
-        <ManualHeader />
+        {/* <ManualHeader /> */}
+        <Header />
         Bonjour
       </div>
     </>
