@@ -3,16 +3,18 @@ import { abi, contractAddresses } from "../constants"
 import { useMoralis } from "react-moralis"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import { useNotification } from "web3uikit"
 
 export default function LotteryEntrance() {
-  /**++++++++++++++++++++++++++++++++++++++++++ hardhat-localhost has no eth in it,
-   * go to html-fundme and check for changes to make ++++++++++++++++++++++++++++++++++++++++++ */
-
-  const { chainId: chainIdHex, isWeb3Enabled } = useMoralis()
+  const { chainId: chainIdHex, isWeb3Enabled, Moralis } = useMoralis()
   const chainId = parseInt(chainIdHex)
   const raffleAddress =
     chainId in contractAddresses ? contractAddresses[chainId][0] : null
   const [entranceFee, setEntraceFee] = useState("0")
+  const [numberOfPlayers, setNumberOfPlayers] = useState("0")
+  const [recentWinner, setRecentWinner] = useState("0")
+
+  const dispatch = useNotification()
 
   const { runContractFunction: getEntranceFee } = useWeb3Contract({
     abi: abi,
@@ -20,6 +22,21 @@ export default function LotteryEntrance() {
     functionName: "getEntranceFee",
     params: {},
   })
+
+  const { runContractFunction: getNumberOfPlayers } = useWeb3Contract({
+    abi: abi,
+    contractAddress: raffleAddress,
+    functionName: "getNumberOfPlayers",
+    params: {},
+  })
+
+  const { runContractFunction: getRecentWinner } = useWeb3Contract({
+    abi: abi,
+    contractAddress: raffleAddress,
+    functionName: "getRecentWinner",
+    params: {},
+  })
+
   const { runContractFunction: enterRaffle } = useWeb3Contract({
     abi: abi,
     contractAddresses: raffleAddress,
@@ -28,15 +45,36 @@ export default function LotteryEntrance() {
     msgValue: entranceFee,
   })
 
+  async function updateUI() {
+    const entranceFeeFromCall = (await getEntranceFee()).toString()
+    const numberOfPlayersFromCall = (await getNumberOfPlayers()).toString()
+    const recentWinnerFromCall = (await getRecentWinner()).toString()
+    setEntraceFee(entranceFeeFromCall)
+    setNumberOfPlayers(numberOfPlayersFromCall)
+    setRecentWinner(recentWinnerFromCall)
+  }
+
   useEffect(() => {
     if (isWeb3Enabled) {
-      async function updateUI() {
-        const entranceFeeFromCall = (await getEntranceFee()).toString()
-        setEntraceFee(entranceFeeFromCall)
-      }
       updateUI()
     }
   }, [isWeb3Enabled])
+
+  const handleSuccess = async function (tx) {
+    await tx.wait(1)
+    handleNewNotification(tx)
+    updateUI()
+  }
+
+  const handleNewNotification = function () {
+    dispatch({
+      type: "info",
+      message: "Transaction Completed !!",
+      title: "Tx Notification",
+      position: "topR",
+      icon: "bell",
+    })
+  }
 
   return (
     <>
@@ -45,13 +83,20 @@ export default function LotteryEntrance() {
         <div>
           <button
             onClick={async function () {
-              await enterRaffle()
+              await enterRaffle({
+                onSuccess: handleSuccess,
+                onError: (error) => console.log(error),
+                //   onSuccess: (tx) => {console.log(tx);},
+                //   onError:(error) => console.log(error);
+              })
             }}
           >
             Enter Raffle
           </button>
           Entrance Fee : {ethers.utils.formatUnits(entranceFee, "ether")}
           ETH
+          <div>Players : {numberOfPlayers}</div>
+          <div>recentWinner : {recentWinner}</div>
         </div>
       ) : (
         "No raffle address detected !!"
