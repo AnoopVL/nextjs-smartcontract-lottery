@@ -1,7 +1,8 @@
 import { useWeb3Contract } from "react-moralis"
 import { abi, contractAddresses } from "../constants"
 import { useMoralis } from "react-moralis"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { ethers } from "ethers"
 
 export default function LotteryEntrance() {
   /**++++++++++++++++++++++++++++++++++++++++++ hardhat-localhost has no eth in it,
@@ -9,11 +10,9 @@ export default function LotteryEntrance() {
 
   const { chainId: chainIdHex, isWeb3Enabled } = useMoralis()
   const chainId = parseInt(chainIdHex)
-  // const raffleAddress =
-  //   chainId in contractAddress ? contractAddress[chainId][0] : null
-
   const raffleAddress =
     chainId in contractAddresses ? contractAddresses[chainId][0] : null
+  const [entranceFee, setEntraceFee] = useState("0")
 
   const { runContractFunction: getEntranceFee } = useWeb3Contract({
     abi: abi,
@@ -21,11 +20,19 @@ export default function LotteryEntrance() {
     functionName: "getEntranceFee",
     params: {},
   })
+  const { runContractFunction: enterRaffle } = useWeb3Contract({
+    abi: abi,
+    contractAddresses: raffleAddress,
+    functionName: "enterRaffle",
+    params: {},
+    msgValue: entranceFee,
+  })
 
   useEffect(() => {
     if (isWeb3Enabled) {
       async function updateUI() {
-        const entraceFeeFromContract = await getEntranceFee()
+        const entranceFeeFromCall = (await getEntranceFee()).toString()
+        setEntraceFee(entranceFeeFromCall)
       }
       updateUI()
     }
@@ -34,6 +41,21 @@ export default function LotteryEntrance() {
   return (
     <>
       <div>LotteryEntrance</div>
+      {raffleAddress ? (
+        <div>
+          <button
+            onClick={async function () {
+              await enterRaffle()
+            }}
+          >
+            Enter Raffle
+          </button>
+          Entrance Fee : {ethers.utils.formatUnits(entranceFee, "ether")}
+          ETH
+        </div>
+      ) : (
+        "No raffle address detected !!"
+      )}
     </>
   )
 }
