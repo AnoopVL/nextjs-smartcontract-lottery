@@ -1,6 +1,5 @@
-import { useWeb3Contract } from "react-moralis"
 import { abi, contractAddresses } from "../constants"
-import { useMoralis } from "react-moralis"
+import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useNotification } from "web3uikit"
@@ -15,6 +14,20 @@ export default function LotteryEntrance() {
   const [recentWinner, setRecentWinner] = useState("0")
 
   const dispatch = useNotification()
+
+  const {
+    runContractFunction: enterRaffle,
+    data: enterTxResponse,
+    isLoading,
+    isFetching,
+  } = useWeb3Contract({
+    abi: abi,
+    contractAddress: raffleAddress,
+    //contractAddressES: raffleAddress,
+    functionName: "enterRaffle",
+    params: {},
+    msgValue: entranceFee,
+  })
 
   const { runContractFunction: getEntranceFee } = useWeb3Contract({
     abi: abi,
@@ -35,14 +48,6 @@ export default function LotteryEntrance() {
     contractAddress: raffleAddress,
     functionName: "getRecentWinner",
     params: {},
-  })
-
-  const { runContractFunction: enterRaffle } = useWeb3Contract({
-    abi: abi,
-    contractAddresses: raffleAddress,
-    functionName: "enterRaffle",
-    params: {},
-    msgValue: entranceFee,
   })
 
   async function updateUI() {
