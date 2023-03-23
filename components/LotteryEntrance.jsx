@@ -2,7 +2,7 @@ import { abi, contractAddresses } from "../constants"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import { useNotification } from "web3uikit"
+import { Beans, Bell, CheckCircle, useNotification, Youtube } from "web3uikit"
 
 export default function LotteryEntrance() {
   const { chainId: chainIdHex, isWeb3Enabled, Moralis } = useMoralis()
@@ -77,7 +77,7 @@ export default function LotteryEntrance() {
       message: "Transaction Completed !!",
       title: "Tx Notification",
       position: "topR",
-      icon: "bell",
+      icon: Bell,
     })
   }
 
@@ -87,6 +87,7 @@ export default function LotteryEntrance() {
       {raffleAddress ? (
         <div>
           <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
             onClick={async function () {
               await enterRaffle({
                 onSuccess: handleSuccess,
