@@ -96,8 +96,13 @@ export default function LotteryEntrance() {
                 //   onError:(error) => console.log(error);
               })
             }}
+            disabled={isLoading || isFetching}
           >
-            Enter Raffle
+            {isLoading || isFetching ? (
+              <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+            ) : (
+              "Enter Raffle"
+            )}
           </button>
           Entrance Fee : {ethers.utils.formatUnits(entranceFee, "ether")}
           ETH
